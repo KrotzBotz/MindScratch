@@ -15,15 +15,15 @@ document.body.classList.toggle('bg', new URLSearchParams(location.search).has('b
 
 const newSeed = () => Math.floor(Math.random() * 1e9);
 
-// Routes: #/ is the gallery, #/<slug>/<seed> is a sketch, and #/search/<seed> is Two Minds with a
-// Google search box, for use as a start page. The seed lives in the URL so a reload (including
+// Routes: #/ is the gallery, #/<slug>/<seed> is a sketch, and #/our-constellation/<seed> is Two
+// Minds with a Google search box, for use as a start page. The seed lives in the URL so a reload (including
 // Vite's reload on save) redraws the same piece.
 function render() {
   current?.stop();
   current = null;
 
   const [route, seedParam] = location.hash.replace(/^#\/?/, '').split('/');
-  const search = route === 'search';
+  const search = route === 'our-constellation';
   const sketch = sketches.find((s) => s.slug === (search ? 'two-minds' : route));
   if (!sketch) return showGallery();
 
@@ -44,7 +44,7 @@ function showGallery() {
 }
 
 function showSketch(sketch, route, seed, search) {
-  document.title = search ? 'Search' : `${sketch.title} · MindScratch`;
+  document.title = search ? 'Our Constellation' : `${sketch.title} · MindScratch`;
   app.innerHTML = `
     <canvas class="stage"></canvas>
     ${search ? `

@@ -58,7 +58,7 @@ On a Mac, the free [Plash](https://sindresorhus.com/plash) app sets a website as
 
 ## Start page
 
-https://krotzbotz.github.io/MindScratch/#/search is Two Minds with a Google search box, ready to type into. Set it as your browser's home page or new-tab page.
+https://krotzbotz.github.io/MindScratch/#/our-constellation is Two Minds with a Google search box, ready to type into. Set it as your browser's home page or new-tab page.
 
 ## Credits
 

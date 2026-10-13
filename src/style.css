@@ -55,7 +55,7 @@ body.bg {
   height: 100%;
 }
 
-/* The search box on #/search: centered just below the faces, quiet until it's in use. */
+/* The search box on #/our-constellation: centered just below the faces, quiet until it's in use. */
 .search {
   position: fixed;
   left: 50%;
