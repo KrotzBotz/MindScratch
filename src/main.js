@@ -10,9 +10,8 @@ const sketches = Object.entries(modules)
 const app = document.getElementById('app');
 let current = null; // { sketch, seed, stop }
 
-// ?bg shows a sketch on its own, for use as a background: no overlay, no cursor.
-const background = new URLSearchParams(location.search).has('bg');
-document.body.classList.toggle('bg', background);
+// ?bg hides the cursor, for using a sketch as a background.
+document.body.classList.toggle('bg', new URLSearchParams(location.search).has('bg'));
 
 const newSeed = () => Math.floor(Math.random() * 1e9);
 
@@ -44,13 +43,7 @@ function showGallery() {
 
 function showSketch(sketch, seed) {
   document.title = `${sketch.title} · MindScratch`;
-  const hud = `
-    <nav class="hud">
-      <a href="#/">← back</a>
-      <span>${sketch.title} · ${seed}</span>
-      <span class="hint">R reseed · S save</span>
-    </nav>`;
-  app.innerHTML = `<canvas class="stage"></canvas>${background ? '' : hud}`;
+  app.innerHTML = '<canvas class="stage"></canvas>';
   const canvas = app.querySelector('canvas');
   current = { sketch, seed, canvas, stop: run(canvas, sketch, seed) };
 }

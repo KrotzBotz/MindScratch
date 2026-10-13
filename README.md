@@ -50,7 +50,7 @@ The seed is in the URL (`#/flow-field/12345`), so a reload redraws the same piec
 
 ## Use as a background
 
-Add `?bg` to a sketch's URL to show it on its own, with no overlay or cursor:
+Add `?bg` to a sketch's URL to hide the mouse cursor:
 
 https://krotzbotz.github.io/MindScratch/?bg#/two-minds
 
