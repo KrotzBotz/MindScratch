@@ -8,26 +8,28 @@ const sketches = Object.entries(modules)
   .sort((a, b) => a.title.localeCompare(b.title));
 
 const app = document.getElementById('app');
-let current = null; // { sketch, seed, stop }
+let current = null; // { sketch, route, seed, canvas, stop }
 
 // ?bg hides the cursor, for using a sketch as a background.
 document.body.classList.toggle('bg', new URLSearchParams(location.search).has('bg'));
 
 const newSeed = () => Math.floor(Math.random() * 1e9);
 
-// Routes: #/ is the gallery, #/<slug>/<seed> is a sketch. The seed lives in the URL
-// so a reload (including Vite's reload on save) redraws the same piece.
+// Routes: #/ is the gallery, #/<slug>/<seed> is a sketch, and #/search/<seed> is Two Minds with a
+// Google search box, for use as a start page. The seed lives in the URL so a reload (including
+// Vite's reload on save) redraws the same piece.
 function render() {
   current?.stop();
   current = null;
 
-  const [slug, seedParam] = location.hash.replace(/^#\/?/, '').split('/');
-  const sketch = sketches.find((s) => s.slug === slug);
+  const [route, seedParam] = location.hash.replace(/^#\/?/, '').split('/');
+  const search = route === 'search';
+  const sketch = sketches.find((s) => s.slug === (search ? 'two-minds' : route));
   if (!sketch) return showGallery();
 
   const seed = Number(seedParam) || newSeed();
-  history.replaceState(null, '', `#/${slug}/${seed}`);
-  showSketch(sketch, seed);
+  history.replaceState(null, '', `#/${route}/${seed}`);
+  showSketch(sketch, route, seed, search);
 }
 
 function showGallery() {
@@ -41,18 +43,24 @@ function showGallery() {
     </main>`;
 }
 
-function showSketch(sketch, seed) {
-  document.title = `${sketch.title} · MindScratch`;
-  app.innerHTML = '<canvas class="stage"></canvas>';
+function showSketch(sketch, route, seed, search) {
+  document.title = search ? 'Search' : `${sketch.title} · MindScratch`;
+  app.innerHTML = `
+    <canvas class="stage"></canvas>
+    ${search ? `
+      <form class="search" action="https://www.google.com/search" role="search">
+        <input name="q" type="search" placeholder="Search Google" aria-label="Search Google" autocomplete="off">
+      </form>` : ''}`;
+  app.querySelector('.search input')?.focus();
   const canvas = app.querySelector('canvas');
-  current = { sketch, seed, canvas, stop: run(canvas, sketch, seed) };
+  current = { sketch, route, seed, canvas, stop: run(canvas, sketch, seed) };
 }
 
 window.addEventListener('keydown', (e) => {
-  if (!current || e.metaKey || e.ctrlKey) return;
+  if (!current || e.metaKey || e.ctrlKey || e.target.closest?.('input')) return;
   const key = e.key.toLowerCase();
   if (key === 'r') {
-    history.replaceState(null, '', `#/${current.sketch.slug}/${newSeed()}`);
+    history.replaceState(null, '', `#/${current.route}/${newSeed()}`);
     render();
   } else if (key === 's') {
     const link = document.createElement('a');

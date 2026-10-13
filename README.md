@@ -56,6 +56,10 @@ https://krotzbotz.github.io/MindScratch/?bg#/two-minds
 
 On a Mac, the free [Plash](https://sindresorhus.com/plash) app sets a website as an animated desktop wallpaper: add the link above. Add a seed (`#/two-minds/7`) to get the same piece every time instead of a new one.
 
+## Start page
+
+https://krotzbotz.github.io/MindScratch/#/search is Two Minds with a Google search box, ready to type into. Set it as your browser's home page or new-tab page.
+
 ## Credits
 
 The face in Two Minds is "Profile", a public-domain drawing from [openclipart](https://openclipart.org) via [freesvg.org](https://freesvg.org/profile).
