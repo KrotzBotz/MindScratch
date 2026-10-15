@@ -19,15 +19,14 @@ const TAU = Math.PI * 2;
 const W = 1600; // composed on a fixed board that's scaled to fit the window,
 const H = 1000; // so a resize doesn't restart it
 const STEP = 1 / 30; // fixed simulation step (seconds), so a seed always unfolds the same way
-const SEG = 2; // length of one traced scratch segment
+const SEG = 2; // spacing of the points along the face lines
 const COATING = '#0b0a0d';
 
 const HEAD = 620; // head height
 const GAP = 0.34 * HEAD; // between the nose tips
 
 // Timeline (seconds)
-const OUTLINE_TIME = 9;
-const SPARK = 14; // the first star in each mind
+const SPARK = 5; // the first star in each mind
 const GROWTH = [35, 200]; // [start, duration] of the minds' first growth
 const LINK_BURN = 8; // how long a line takes to burn in; it connects once mostly there
 
@@ -86,7 +85,6 @@ export default {
     const groups = new Set(); // everything scratched, grouped by what dies together
     let neurons = [];
     let active = []; // segments still burning in
-    let tips = []; // styluses tracing the faces
     let waking = []; // stars still forming
     let forming = []; // lines still burning in
     let flares = [];
@@ -106,14 +104,11 @@ export default {
     let nextFlurry = 0;
     let nextField = 0;
 
-    const outline = group('outline', { permanent: true, white: true });
+    // The faces are there from the start, on their own layer so they show white.
     for (const head of heads) {
-      const last = head.face.length - 1;
-      trace(outline, head.face, {
-        speed: (SEG * head.face.length) / OUTLINE_TIME,
-        burn: 6,
-        width: (p) => 0.35 + BRUSH * head.face[Math.round(p * last)][2],
-        depth: () => 0.95,
+      head.face.slice(1).forEach(([x2, y2], i) => {
+        const [x1, y1, w] = head.face[i];
+        stroke(faces, { x1, y1, x2, y2, width: 0.35 + BRUSH * w }, 0.95);
       });
     }
 
@@ -151,7 +146,7 @@ export default {
       active = active.filter((s) => {
         if (s.g.fading) return false; // drawn by the fade from now on
         if (t < s.born + s.burn) return true;
-        stroke(s.g.white ? faces : settled, s, s.depth);
+        stroke(settled, s, s.depth);
         s.settled = true;
         return false;
       });
@@ -159,7 +154,7 @@ export default {
 
     // The coating creeps back over a group.
     function fade(g, dur) {
-      if (g.fading || g.permanent) return;
+      if (g.fading) return;
       g.fading = { start: t, dur };
       for (const s of g.segs) if (!s.settled) s.depth = cov(s);
       if (g.kind === 'link') rewired = true;
@@ -169,27 +164,7 @@ export default {
     function rebuild() {
       clearLayer(settled);
       for (const g of groups) {
-        if (!g.fading && !g.white) for (const s of g.segs) if (s.settled) stroke(settled, s, s.depth);
-      }
-    }
-
-    // A stylus following a fixed path: the faces.
-    function trace(g, points, { speed, burn, width, depth }) {
-      tips.push({ g, points, i: 0, x: points[0][0], y: points[0][1], acc: 0, done: false, speed, burn, width, depth });
-    }
-
-    function advance(tip) {
-      if (tip.g.fading) tip.done = true;
-      tip.acc += tip.speed * STEP;
-      while (tip.acc >= SEG && !tip.done) {
-        tip.acc -= SEG;
-        const [x1, y1] = tip.points[tip.i];
-        const [x2, y2] = tip.points[tip.i + 1];
-        const p = tip.i / (tip.points.length - 1);
-        scratch(tip.g, x1, y1, x2, y2, tip.width(p), tip.depth(p), tip.burn);
-        tip.x = x2;
-        tip.y = y2;
-        if (++tip.i >= tip.points.length - 1) tip.done = true;
+        if (!g.fading) for (const s of g.segs) if (s.settled) stroke(settled, s, s.depth);
       }
     }
 
@@ -608,8 +583,6 @@ export default {
       tendBetween();
       flurry();
       tendField();
-      for (let i = 0; i < tips.length; i++) advance(tips[i]);
-      tips = tips.filter((tip) => !tip.done);
       waking = waking.filter((n) => {
         if (n.dead) return false;
         if (t < n.born + 3 * n.slow) return true;
@@ -654,7 +627,7 @@ export default {
       reveal.globalCompositeOperation = 'source-over';
       reveal.drawImage(settled.canvas, 0, 0, W, H);
       reveal.globalCompositeOperation = 'lighten';
-      for (const s of active) if (!s.g.white) stroke(reveal, s, cov(s));
+      for (const s of active) stroke(reveal, s, cov(s));
       for (const g of groups) {
         if (!g.fading) continue;
         const gone = smoothstep((t - g.fading.start) / g.fading.dur);
@@ -666,7 +639,6 @@ export default {
       // The faces go on after, in white.
       reveal.globalCompositeOperation = 'lighten';
       reveal.drawImage(faces.canvas, 0, 0, W, H);
-      for (const s of active) if (s.g.white) stroke(reveal, s, cov(s));
 
       const scale = Math.min(width / W, height / H);
       const ox = (width - W * scale) / 2;
@@ -699,10 +671,6 @@ export default {
       ctx.fillStyle = ctx.strokeStyle = light;
       const fading = (g) => (g.fading ? 1 - (t - g.fading.start) / g.fading.dur : 1);
 
-      // The stylus tracing the faces.
-      ctx.fillStyle = '#fff';
-      for (const tip of tips) if (tip.g === outline) shine(ctx, tip.x, tip.y, 1.6, 0.35);
-      ctx.fillStyle = light;
 
       // Lines flicker as they appear, then twinkle now and then.
       for (const g of groups) {
